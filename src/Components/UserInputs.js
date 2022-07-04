@@ -22,7 +22,8 @@ export const UserInputs = (props) => {
   const [tokenSelect, setTokenSelect] = useState("")
   const [burnAmountUser, setBurnAmountUser] = useState("");
   const [burnToken, setBurnToken ] = useState(null);
-  const [mia, setMia] = useState({
+  
+  const mia = {
     name: 'mia',
     contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
     contractName: 'scarcity-token',
@@ -38,8 +39,9 @@ export const UserInputs = (props) => {
     },
     variantType: "success",
     buttonName: "BurnMIA to Mint"
-  })
-  const [nyc, setNyc] = useState({
+  };
+
+  const nyc = {
     name: 'nyc',
     contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
     contractName: 'scarcity-token',
@@ -55,9 +57,9 @@ export const UserInputs = (props) => {
       },
     variantType: "success",
     buttonName: "BurnNYC to Mint"
-  })
-  const [testTokenOne, setTestTokenOne] = useState(
-  {
+  };
+
+  const testTokenOne = {
     contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
     contractName: 'scarcity-token',
     functionName: 'mint',
@@ -72,9 +74,9 @@ export const UserInputs = (props) => {
     },
     variantType: "success",
     buttonName: "BurnTestTokenOne to Mint" 
-  })
-const [testTokenTwo, setTestTokenTwo] = useState(
-{
+  };
+
+const testTokenTwo = {
   contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
   contractName: 'mint-test-token-two',
   functionName: 'mint',
@@ -89,7 +91,7 @@ const [testTokenTwo, setTestTokenTwo] = useState(
   },
   variantType: "success",
   buttonName: "BurnTestTokenTwo to Mint" 
-})
+};
 
   const handleSetBurnAmountUser = (e) => {
     const burnAmount = parseInt(e.target.value)
