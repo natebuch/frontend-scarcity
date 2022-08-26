@@ -20,7 +20,7 @@ import {
 } from 'micro-stacks/transactions';
 import { ContractCallButton } from "./ContractCallButton"
 
-const minBurnAmount = 1
+const minBurnAmount = 1000000
 
 export const UserInputs = (props) => {
   const { currentStxAddress } = props
@@ -71,12 +71,12 @@ export const UserInputs = (props) => {
 
   return (
     <VStack justify='center'>
-      <Text as='h4'>Balances:</Text>
+      <Text as='h4'>Balances (in micro units):</Text>
       <UnorderedList styleType='none'>
         { props.userTokens.map(token => {
           return (
             <ListItem key={token.tokenName}>
-              {`${token.tokenName} : ${token.tokenBalance/Math.pow(10,token.decimal)}`}
+              {`${token.tokenName} : ${token.tokenBalance}`}
             </ListItem>
           )})
         }
@@ -92,7 +92,7 @@ export const UserInputs = (props) => {
           <Input
             type='tel'
             disabled={tokenSelect === "" ? true : false } 
-            placeholder='Amount - Min. 1'
+            placeholder='Amount - Min. 1000000'
             value={burnAmountUser}
             autoComplete='off'
             onChange={handleSetBurnAmountUser}>
