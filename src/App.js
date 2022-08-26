@@ -1,108 +1,165 @@
 import { useState, useEffect } from "react";
 import { useAuth, useUser, useNetwork} from "@micro-stacks/react";
-import { fetchAccountBalances } from 'micro-stacks/api';
+import { fetchAccountBalances, fetchAccountTransactionsWithTransfers, fetchReadOnlyFunction } from 'micro-stacks/api';
 import {
-  standardPrincipalCV,
-  uintCV,
-  contractPrincipalCV
+  standardPrincipalCV
 } from 'micro-stacks/clarity';
-import {
-  FungibleConditionCode,
-  makeStandardFungiblePostCondition,
-  createAssetInfo
-} from 'micro-stacks/transactions';
 import { 
+  Box,
+  Heading,
+  HStack,
+  VStack,
   Button,
   Spinner,
-} from 'react-bootstrap';
+  Text,
+} from '@chakra-ui/react';
 import { UserInputs} from './Components/UserInputs';
 import { TestInputs} from './Components/TestInputs';
 
-//SPSCWDV3RKV5ZRN1FQD84YE1NQFEDJ9R1F4DYQ11.newyorkcitycoin-token-v2
-//SP1H1733V5MZ3SZ9XRW9FKYGEZT0JDGEB8Y634C7R.miamicoin-token-v2
+const scarcityToken = {
+  address: 'SP1360BMRNRYWMHP9MWVD2B0VYET8G6MC8N0DH1MQ',
+  contractName: 'scarcity',
+};
 
-// deployed: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.practice
-// deployed: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.citycoin-token-trait
-// deployed: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.mint-test-token-two
-// deployed: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.mint-test-token-one
-// deployed: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.scarcity-token
+//SP1360BMRNRYWMHP9MWVD2B0VYET8G6MC8N0DH1MQ.scarcity
 
-// const contractAddress =
-// const contractName = 
-// const mintTestTokenOne =
-// const mintTestTokenTwo =
-// const mintScarcity = 
-// const burnScarcity 
-const minBurnAmount = 100
+const token = {
+  tokenAddress: 'address',
+  tokenName: 'name',
+  tokenSymbol: 'symbol',
+  tokenBalance: 1,
+  decimal: 1,
+};
 
 function App() {
   const {isSignedIn, handleSignIn, handleSignOut, isLoading} = useAuth();
   const {currentStxAddress, ...rest} = useUser();
   const { network } = useNetwork();
-  const [testTokenOne, setTestTokenOne] = useState(null)
-  const [testTokenTwo, setTestTokenTwo] = useState(null)
- 
+  const [ userTokens, setUserTokens ] = useState([]);
+
+  async function fetchWhitelistedAssets() { 
+    const whitelistedAssets = await fetchReadOnlyFunction({
+      network: network,
+      contractAddress: scarcityToken.address,
+      contractName: scarcityToken.contractName,
+      functionArgs: [],
+      functionName: 'get-whitelist',
+      sender: currentStxAddress,
+    });
+    console.log('wl', whitelistedAssets)
+    return whitelistedAssets
+  };  
+
+  async function fetchTokenBalance(contract) { 
+    const tokenBalance = await fetchReadOnlyFunction({
+      network: network,
+      contractAddress: contract.split('.')[0],
+      contractName: contract.split('.')[1],
+      functionArgs: [standardPrincipalCV(currentStxAddress)],
+      functionName: 'get-balance',
+      sender: currentStxAddress,
+    });
+    console.log(Number(tokenBalance))
+    return Number(tokenBalance)
+  }; 
+  
+  async function fetchDecimal(contract) { 
+    const decimal = await fetchReadOnlyFunction({
+      network: network,
+      contractAddress: contract.split('.')[0],
+      contractName: contract.split('.')[1],
+      functionArgs: [],
+      functionName: 'get-decimals',
+      sender: currentStxAddress,
+    });
+    console.log(Number(decimal))
+    return Number(decimal)
+  }; 
+
+  async function fetchTokenName(contract) { 
+    const tokenName = await fetchReadOnlyFunction({
+      network: network,
+      contractAddress: contract.split('.')[0],
+      contractName: contract.split('.')[1],
+      functionArgs: [],
+      functionName: 'get-name',
+      sender: currentStxAddress,
+    });
+    return tokenName
+  };
+
+  async function fetchTokenSymbol(contract) { 
+    const tokenSymbol = await fetchReadOnlyFunction({
+      network: network,
+      contractAddress: contract.split('.')[0],
+      contractName: contract.split('.')[1],
+      functionArgs: [],
+      functionName: 'get-symbol',
+      sender: currentStxAddress,
+    });
+    return tokenSymbol
+  };
+
+  async function buildTokenObj(contract) { 
+    const name = await fetchTokenName(contract);
+    const symbol = await fetchTokenSymbol(contract);
+    const balance = await fetchTokenBalance(contract);
+    const decimal = await fetchDecimal(contract)
+    const obj = Object.create(token)
+    obj.tokenAddress = contract
+    obj.tokenName = name
+    obj.tokenSymbol = symbol
+    obj.tokenBalance = balance
+    obj.decimal = decimal
+    setUserTokens(userTokens => [...userTokens, obj]);
+  };
 
   useEffect(() => {
     if (isSignedIn && currentStxAddress) {
-      fetchUserBalances()
-      setTestTokenOne({
-          contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-          contractName: 'mint-test-token-one',
-          functionName: 'mint',
-          functionArguements: [uintCV(1000), standardPrincipalCV(currentStxAddress)],
-          postConditions: [],
-          variantType: "warning",
-          buttonName: "Mint Test Token One"
-      })
-      setTestTokenTwo(
-      {
-        contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-        contractName: 'mint-test-token-two',
-        functionName: 'mint',
-        functionArguements: [uintCV(1000), standardPrincipalCV(currentStxAddress)],
-        postConditions: [],
-        variantType: "danger",
-        buttonName: "Mint Test Token Two"
-      })
-    } else {
-      setTestTokenOne(null)
-      setTestTokenTwo(null)
-    }
+      async function buildTokenData() {
+        const assetList = await fetchWhitelistedAssets()
+          assetList.map(asset => {
+            buildTokenObj(asset)
+          })
+      }
+      buildTokenData()      
+    } 
   },[currentStxAddress,isSignedIn])
 
-  async function fetchUserBalances() {
-    const balances = await fetchAccountBalances({
-      url: network.getCoreApiUrl(),
-      principal: [ currentStxAddress ],
-    })
-    console.log(
-      balances,
-      network,
-      currentStxAddress,
-    )  
-  };
-
   return (
-    <div>
-      <Button variant="primary" type="button" onClick={isSignedIn ? handleSignOut : handleSignIn}>
-        {isLoading ? <div><Spinner animation="border"/> Loading... </div>: isSignedIn ? "Sign out" : "Connect Stacks Wallet"} 
-      </Button>
-        <div> 
-          <h5>{ currentStxAddress }</h5>
-          <h1>Scarcity</h1>
-          { isSignedIn && currentStxAddress ?
+  <Box>
+    <Box p='3'>
+      <HStack justify='space-between' spacing='2' w='100'>
+        <Heading size='md'> SCARCITY </Heading>
+        <HStack>
+          <Heading size='xs'>{ currentStxAddress }</Heading>
+          <Button onClick={isSignedIn ? handleSignOut : handleSignIn}>
+            {isLoading ? <div><Spinner/> Loading... </div>: isSignedIn ? "Sign out" : "Connect Stacks Wallet"} 
+          </Button>
+        </HStack>
+      </HStack>
+    </Box>
+    <Box>
+      <VStack m='40px'>
+        <Heading size='3xl'>🔥 SCARCITY PROJECT 🔥</Heading>
+        { isSignedIn && currentStxAddress ?
           <UserInputs
             currentStxAddress={currentStxAddress}
+            userTokens={userTokens}
           /> : "" }
-        </div>
+      </VStack>
+    </Box>
+    <Box position='fixed' bottom='0' p='3'>
+      <HStack>
         { isSignedIn && currentStxAddress && network.bnsLookupUrl === "http://localhost:3999" ? 
-          <div>
-            {testTokenOne && <TestInputs token={testTokenOne}/> }
-            {testTokenTwo && <TestInputs token={testTokenTwo}/> }
-          </div> : ''
+          <HStack>
+            <Text>Dev: </Text>
+            { currentStxAddress && <TestInputs currentStxAddress={currentStxAddress}/> }
+          </HStack> : ''
         }
-    </div>
+      </HStack>
+    </Box>
+  </Box>
   );
 }
 

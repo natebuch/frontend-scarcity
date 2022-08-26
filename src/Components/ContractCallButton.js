@@ -1,11 +1,14 @@
 import { useContractCall } from "@micro-stacks/react";
 import { 
   Button,
-} from 'react-bootstrap';
+} from '@chakra-ui/react';
 import {
   makeStandardFungiblePostCondition,
 } from 'micro-stacks/transactions';
+
 import {
+  standardPrincipalCV,
+  contractPrincipalCV,
   uintCV,
 } from 'micro-stacks/clarity';
 
@@ -16,27 +19,23 @@ export const ContractCallButton = (props) => {
     contractName: token.contractName,
     functionName: token.functionName,
     functionArgs: [
-      uintCV(burnAmountUser),
-      token.functionArguements.standard,
-      token.functionArguements.contract
+      uintCV(burnAmountUser*(Math.pow(10,token.decimal))),
+      token.functionArguments.standard,
+      token.functionArguments.contract,
     ],
     postConditions: [
       makeStandardFungiblePostCondition(
         token.postConditions.address,
         token.postConditions.code,
-        burnAmountUser,
-        token.postConditions.assetInfo
+        burnAmountUser*(Math.pow(10,token.decimal)),
+        token.postConditions.assetInfo,
       )
-    ]
+    ],
+    onFinish: handleResetInputFunc
   });
-
-  const handleContractCallAndReset = () => {
-    handleContractCall()
-    handleResetInputFunc()
-  }
-  
+    
     return (
-    <Button variant={token.variantType} onClick={ handleContractCallAndReset }>
+    <Button onClick={ handleContractCall }>
       {token.buttonName}
     </Button>
     )

@@ -1,20 +1,70 @@
-import { useContractCall } from "@micro-stacks/react";
 import { 
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
   Button,
-} from 'react-bootstrap';
+  useDisclosure,
+  VStack,
+  Text,
+} from '@chakra-ui/react';
+import { TestTokenMintButton } from './TestTokenMintButton';
+import { TestTokenWhiteListButton } from './TestTokenWhiteListButton';
+import {
+  standardPrincipalCV,
+  uintCV,
+} from 'micro-stacks/clarity';
 
 export const TestInputs = (props) => {
-  const { handleContractCall } = useContractCall ({
-    contractAddress: props.token.contractAddress,
-    contractName: props.token.contractName,
-    functionName: props.token.functionName,
-    functionArgs: props.token.functionArguements,
-    postConditions: props.token.postConditions,
-  });
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const testTokenOne = {
+    fullAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.mint-test-token-one',
+    contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
+    contractName: 'mint-test-token-one',
+    functionName: 'mint',
+    functionArguements: [uintCV(1000), standardPrincipalCV(props.currentStxAddress)],
+    postConditions: [],
+    variantType: "warning",
+    buttonName: "Mint Test Token One"
+  }
   
-    return (
-    <Button variant={props.token.variantType} onClick={ handleContractCall }>
-      {props.token.buttonName}
-    </Button>
+  const testTokenTwo = {
+    fullAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.mint-test-token-two',
+    contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
+    contractName: 'mint-test-token-two',
+    functionName: 'mint',
+    functionArguements: [uintCV(1000), standardPrincipalCV(props.currentStxAddress)],
+    postConditions: [],
+    variantType: "danger",
+    buttonName: "Mint Test Token Two"
+  }
+  
+  return (
+    <>
+      <Button onClick={ onOpen }>Dev Tools</Button>
+      <Modal isOpen={ isOpen } onClose={ onClose }>
+        <ModalOverlay/>
+          <ModalContent>
+            <ModalHeader>Dev Tools<ModalCloseButton onClick={ onClose}/></ModalHeader>
+              <ModalBody> 
+                <Text>Mint tokens for testing.</Text>
+                <VStack p='3'>
+                  <TestTokenMintButton token={testTokenOne} />  
+                  <TestTokenWhiteListButton token={testTokenOne}/>  
+                  <TestTokenMintButton token={testTokenTwo} /> 
+                  <TestTokenWhiteListButton token={testTokenTwo}/>
+                </VStack>
+              </ModalBody>
+              <ModalFooter>
+                <Button onClick={ onClose }>
+                  Close
+                </Button>
+              </ModalFooter>
+          </ModalContent>
+      </Modal>
+    </>
   )  
 }

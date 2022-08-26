@@ -1,7 +1,14 @@
 import { useState } from "react"
 import { 
-  Form,
-} from 'react-bootstrap';
+  VStack,
+  HStack,
+  Text,
+  Select,
+  Input,
+  FormControl,
+  UnorderedList,
+  ListItem,
+} from '@chakra-ui/react';
 import {
   standardPrincipalCV,
   uintCV,
@@ -13,108 +20,45 @@ import {
 } from 'micro-stacks/transactions';
 import { ContractCallButton } from "./ContractCallButton"
 
-const minBurnAmount = 100
-const tokens = ['mia','nyc','testTokenOne','testTokenTwo']
-
+const minBurnAmount = 1
 
 export const UserInputs = (props) => {
   const { currentStxAddress } = props
   const [tokenSelect, setTokenSelect] = useState("")
   const [burnAmountUser, setBurnAmountUser] = useState("");
-  const [burnToken, setBurnToken ] = useState(null);
-  
-  const mia = {
-    name: 'mia',
-    contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-    contractName: 'scarcity-token',
-    functionName: 'mint',
-    functionArguements: { 
-        standard: standardPrincipalCV(currentStxAddress),
-        contract: contractPrincipalCV('SP1H1733V5MZ3SZ9XRW9FKYGEZT0JDGEB8Y634C7R.miamicoin-token-v2')
-    },
-    postConditions: {
-      address: currentStxAddress,
-      code: FungibleConditionCode.GreaterEqual, 
-      assetInfo: createAssetInfo('SP1H1733V5MZ3SZ9XRW9FKYGEZT0JDGEB8Y634C7R','miamicoin-token-v2','miamicitycoin'),
-    },
-    variantType: "success",
-    buttonName: "BurnMIA to Mint"
-  };
-
-  const nyc = {
-    name: 'nyc',
-    contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-    contractName: 'scarcity-token',
-    functionName: 'mint',
-    functionArguements: { 
-      standard: standardPrincipalCV(currentStxAddress),
-      contract: contractPrincipalCV('SPSCWDV3RKV5ZRN1FQD84YE1NQFEDJ9R1F4DYQ11.newyorkcitycoin-token-v2')
-    },
-    postConditions: {
-        address: currentStxAddress,
-        code: FungibleConditionCode.GreaterEqual, 
-        assetInfo: createAssetInfo('SPSCWDV3RKV5ZRN1FQD84YE1NQFEDJ9R1F4DYQ11','newyorkcitycoin-token-v2','newyorkcitycoin'),
-      },
-    variantType: "success",
-    buttonName: "BurnNYC to Mint"
-  };
-
-  const testTokenOne = {
-    contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-    contractName: 'scarcity-token',
-    functionName: 'mint',
-    functionArguements: { 
-      standard: standardPrincipalCV(currentStxAddress),
-      contract: contractPrincipalCV('ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.mint-test-token-one')
-    },
-    postConditions: {
-      address: currentStxAddress,
-      code: FungibleConditionCode.GreaterEqual, 
-      assetInfo: createAssetInfo('ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM','mint-test-token-one','test-token-one'),
-    },
-    variantType: "success",
-    buttonName: "BurnTestTokenOne to Mint" 
-  };
-
-const testTokenTwo = {
-  contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-  contractName: 'mint-test-token-two',
-  functionName: 'mint',
-  functionArguements: { 
-    standard: standardPrincipalCV(currentStxAddress),
-    contract: contractPrincipalCV('ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.mint-test-token-two')
-  },
-  postConditions: {
-    address: currentStxAddress,
-    code: FungibleConditionCode.GreaterEqual, 
-    assetInfo: createAssetInfo('ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM','mint-test-token-two','test-token-two'),
-  },
-  variantType: "success",
-  buttonName: "BurnTestTokenTwo to Mint" 
-};
+  const [burnToken, setBurnToken ] = useState();
 
   const handleSetBurnAmountUser = (e) => {
-    const burnAmount = parseInt(e.target.value)
-    setBurnAmountUser(burnAmount)
+    const re = /^[0-9.\b]+$/;
+    if (e.target.value === '' || re.test(e.target.value)) {
+      setBurnAmountUser(e.target.value);
+    }
   }
+  // Function will add hyphens at spaces for token  
+
 
   const handleSetBurnToken = (e) => {
-    setTokenSelect(e.target.value)
-    switch(e.target.value) {
-      case 'mia':
-        setBurnToken(mia)
-      break;
-      case 'nyc':
-        setBurnToken(nyc)
-      break;
-      case 'testTokenOne':
-        setBurnToken(testTokenOne)
-      break;
-      case 'testTokenTwo':
-        setBurnToken(testTokenTwo)
-      break;
-      default:
-    }
+    const selectedTokenAddress = e.target.value
+    const token = props.userTokens.filter(token => token.tokenAddress === selectedTokenAddress)[0]
+    setTokenSelect(token.tokenName)
+    setBurnToken({
+      name: token.tokenName,
+      decimal: token.decimal,
+      balance: token.tokenBalance,
+      contractAddress: 'SP1360BMRNRYWMHP9MWVD2B0VYET8G6MC8N0DH1MQ',
+      contractName: 'scarcity',
+      functionName: 'mint',
+      functionArguments: { 
+          standard: standardPrincipalCV(currentStxAddress),
+          contract: contractPrincipalCV(token.tokenAddress)
+      },
+      postConditions: {
+        address: currentStxAddress,
+        code: FungibleConditionCode.GreaterEqual, 
+        assetInfo: createAssetInfo(token.tokenAddress.split('.')[0],token.tokenAddress.split('.')[1],token.tokenName),
+      },
+      buttonName: `🔥 Burn ${token.tokenName} 🔥`
+    })
   }
 
   const handleResetInputs = () => {
@@ -123,29 +67,45 @@ const testTokenTwo = {
     setTokenSelect("")
   }
   
-  const TokenSelect = () => {
-    return (
-      <Form.Select value={tokenSelect} aria-label="Coin Selector" onChange={handleSetBurnToken}>
-        <option disabled value="">Select Coin to Burn</option>
-        { tokens.map(token => {
-          return <option key={token} value={token}>{token}</option>
-          })
-        }
-      </Form.Select>
-    )
-  }
+  console.log(props.userTokens)
 
   return (
-    <div>
-      <TokenSelect/>
-      <Form.Control value={burnAmountUser} disabled={tokenSelect === "" ? true : false } placeholder="100 min. required to burn" type="number" min='1' onChange={handleSetBurnAmountUser}/>
-      { burnToken && burnAmountUser > minBurnAmount ?  
+    <VStack justify='center'>
+      <Text as='h4'>Balances:</Text>
+      <UnorderedList styleType='none'>
+        { props.userTokens.map(token => {
+          return (
+            <ListItem key={token.tokenName}>
+              {`${token.tokenName} : ${token.tokenBalance/Math.pow(10,token.decimal)}`}
+            </ListItem>
+          )})
+        }
+      </UnorderedList>
+      <HStack>
+      <Select placeholder='Select Token to Burn' onChange={handleSetBurnToken}>
+        { props.userTokens.map(token => {
+          return <option key={token.tokenName} value={token.tokenAddress}>{token.tokenName}</option>
+          })
+        }
+      </Select>
+        <FormControl>
+          <Input
+            type='tel'
+            disabled={tokenSelect === "" ? true : false } 
+            placeholder='Amount - Min. 1'
+            value={burnAmountUser}
+            autoComplete='off'
+            onChange={handleSetBurnAmountUser}>
+          </Input>
+        </FormControl>
+      </HStack>
+      { burnToken && burnAmountUser >= minBurnAmount ?  
       <ContractCallButton 
         currentStxAddress={currentStxAddress}
         token={burnToken} 
         burnAmountUser={burnAmountUser}
         handleResetInputFunc={ handleResetInputs }
       /> : '' }
-    </div>
+    </VStack>
   )
 }
