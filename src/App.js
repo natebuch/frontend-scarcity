@@ -59,7 +59,7 @@ function App() {
       functionName: 'get-balance',
       sender: currentStxAddress,
     });
-    return tokenBalance
+    return Number(tokenBalance)
   }; 
   
   async function fetchDecimal(contract) { 
@@ -71,7 +71,7 @@ function App() {
       functionName: 'get-decimals',
       sender: currentStxAddress,
     });
-    return decimal
+    return Number(decimal)
   }; 
 
   async function fetchTokenName(contract) { 

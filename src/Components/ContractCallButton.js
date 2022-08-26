@@ -19,7 +19,7 @@ export const ContractCallButton = (props) => {
     contractName: token.contractName,
     functionName: token.functionName,
     functionArgs: [
-      uintCV(burnAmountUser),
+      uintCV(burnAmountUser*(Math.pow(10,token.decimal))),
       token.functionArguments.standard,
       token.functionArguments.contract,
     ],
@@ -27,7 +27,7 @@ export const ContractCallButton = (props) => {
       makeStandardFungiblePostCondition(
         token.postConditions.address,
         token.postConditions.code,
-        burnAmountUser,
+        burnAmountUser*(Math.pow(10,token.decimal)),
         token.postConditions.assetInfo,
       )
     ],
