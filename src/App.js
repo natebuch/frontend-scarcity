@@ -121,8 +121,12 @@ function App() {
           })
       }
       buildTokenData()      
-    } 
+    } else {
+      setUserTokens([])
+    }
   },[currentStxAddress,isSignedIn])
+
+  console.log(userTokens)
 
   return (
   <Box>
