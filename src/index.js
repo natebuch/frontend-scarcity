@@ -14,7 +14,7 @@ const authOptions = {
 
 }
 
-const network = new StacksMainnet()
+const network = new StacksMocknet()
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

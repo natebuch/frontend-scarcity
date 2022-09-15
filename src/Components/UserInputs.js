@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { 
+  Button,
   VStack,
   HStack,
   Text,
@@ -11,22 +12,26 @@ import {
 } from '@chakra-ui/react';
 import {
   standardPrincipalCV,
-  uintCV,
-  contractPrincipalCV
+  contractPrincipalCV,
 } from 'micro-stacks/clarity';
 import {
+  fetchTransaction  
+} from 'micro-stacks/api';
+import {
   FungibleConditionCode,
-  createAssetInfo
+  createAssetInfo,
+  NonFungibleConditionCode
 } from 'micro-stacks/transactions';
 import { ContractCallButton } from "./ContractCallButton"
 
 const minBurnAmount = 1
 
 export const UserInputs = (props) => {
-  const { currentStxAddress } = props
+  const { currentStxAddress, userTokens, userInfo, userNft } = props
   const [tokenSelect, setTokenSelect] = useState("")
   const [burnAmountUser, setBurnAmountUser] = useState("");
   const [burnToken, setBurnToken ] = useState();
+  const [txStatus, setTxStatus] = useState();
 
   const handleSetBurnAmountUser = (e) => {
     const re = /^[0-9.\b]+$/;
@@ -34,78 +39,124 @@ export const UserInputs = (props) => {
       setBurnAmountUser(e.target.value);
     }
   }
-  // Function will add hyphens at spaces for token  
-
 
   const handleSetBurnToken = (e) => {
     const selectedTokenAddress = e.target.value
-    const token = props.userTokens.filter(token => token.tokenAddress === selectedTokenAddress)[0]
+    const token = userTokens.filter(token => token.tokenAddress === selectedTokenAddress)[0]
     setTokenSelect(token.tokenName)
     setBurnToken({
       name: token.tokenName,
       decimal: token.decimal,
       balance: token.tokenBalance,
-      contractAddress: 'SP1360BMRNRYWMHP9MWVD2B0VYET8G6MC8N0DH1MQ',
-      contractName: 'scarcity',
-      functionName: 'mint',
+      contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
+      contractName: 'scarcity-token',
+      functionName: 'mint-scarcity',
       functionArguments: { 
           standard: standardPrincipalCV(currentStxAddress),
-          contract: contractPrincipalCV(token.tokenAddress)
+          contract: contractPrincipalCV(token.tokenAddress),
       },
       postConditions: {
         address: currentStxAddress,
-        code: FungibleConditionCode.GreaterEqual, 
-        assetInfo: createAssetInfo(token.tokenAddress.split('.')[0],token.tokenAddress.split('.')[1],token.tokenName),
+        codeFT: FungibleConditionCode.GreaterEqual, 
+        assetInfoFT: createAssetInfo(token.tokenAddress.split('.')[0],token.tokenAddress.split('.')[1],token.tokenName),
+        codeNFT: NonFungibleConditionCode.DoesNotOwn,
+        assetInfoNFT: createAssetInfo('ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM','scarcity-token','scarcity-token')
       },
-      buttonName: `🔥 Burn ${token.tokenName} 🔥`
+      buttonName: `🔥 Burn 🔥`
     })
   }
 
   const handleResetInputs = () => {
     setBurnAmountUser("")
-    setBurnToken(null)
-    setTokenSelect("")
   }
-  
-  console.log(props.userTokens)
+
+  useEffect(() => {
+    const recentTxId = window.localStorage.getItem(currentStxAddress);
+    async function checkRecentTxId() {
+      const data = await fetchTransaction({
+        txid: recentTxId, 
+        url: 'http://localhost:3999',
+      })
+      setTxStatus(data.tx_status)
+    };
+    if (recentTxId) {
+      checkRecentTxId()
+      } else {
+        window.localStorage.removeItem(currentStxAddress)
+        setTxStatus('pending')
+    }
+  },[])
 
   return (
-    <VStack justify='center'>
-      <Text as='h4'>Balances:</Text>
-      <UnorderedList styleType='none'>
-        { props.userTokens.map(token => {
-          return (
-            <ListItem key={token.tokenName}>
-              {`${token.tokenName} : ${Number(token.tokenBalance)/(Math.pow(10,token.decimal))}`}
-            </ListItem>
-          )})
+    <VStack>
+      { userInfo ? 
+      <HStack justify='space-between'>
+        <Text>Burnt Amount: {userInfo["burnt-amount"] ? Number(userInfo["burnt-amount"])/(Math.pow(10, userTokens[0] && userTokens[0].decimal)) : ""}</Text>
+        <Text>Scarcity NFT ID: {userInfo["current-nft-id"] ? Number(userInfo["current-nft-id"]) : ''}</Text>
+      </HStack> : '' }
+    <HStack borderWidth='2px' p='3'>
+      <VStack >
+        <Text fontSize='3xl'>Balances</Text>
+        { userTokens.length > 1 ?
+          <UnorderedList styleType='none'>
+            { userTokens.map(token => {
+              return (
+                <ListItem key={token.tokenName}>
+                  {token.tokenName}: {Number(token.tokenBalance)/(Math.pow(10,token.decimal))}
+                </ListItem>
+              )})
+            }
+          </UnorderedList> :
+          <Text fontSize='sm'>No burnable assets</Text>
         }
-      </UnorderedList>
-      <HStack>
-      <Select placeholder='Select Token to Burn' onChange={handleSetBurnToken}>
-        { props.userTokens.map(token => {
-          return <option key={token.tokenName} value={token.tokenAddress}>{token.tokenName}</option>
-          })
+        </VStack>
+      <VStack p='3'>
+        { txStatus === 'pending' ?
+          <VStack> 
+            <Text fontSize='sm'>
+              There is a pending transaction for this address.
+            </Text>
+            <Text fontSize='sm'>
+              Please wait until it is complete before burning.
+            </Text>
+            <Text fontSize='sm'>
+              Refresh Page to Burn.
+            </Text>
+          </VStack>: (
+          <>
+            <Select onChange={handleSetBurnToken}>
+              <option selected disabled value=''>Select Token to Burn</option>
+              { userTokens.map(token => {
+                return <option key={token.tokenName} value={token.tokenAddress}>{token.tokenName}</option>
+                })
+              }
+            </Select>
+              <FormControl>
+                <Input
+                  type='tel'
+                  disabled={tokenSelect === "" ? true : false } 
+                  placeholder='Amount - Min. 1'
+                  value={burnAmountUser}
+                  autoComplete='off'
+                  onChange={handleSetBurnAmountUser}>
+                </Input>
+              </FormControl>
+            { burnToken && burnAmountUser >= minBurnAmount ?  
+              <ContractCallButton 
+                userNft={userNft && userNft}
+                userInfo={userInfo}
+                currentStxAddress={currentStxAddress}
+                token={burnToken} 
+                burnAmountUser={burnAmountUser}
+                handleResetInputFunc={ handleResetInputs }
+                disabled={ burnToken && burnAmountUser >= minBurnAmount ? false : true}
+              /> : 
+              <Button disabled>Burn</Button>
+            }
+          </>)
         }
-      </Select>
-        <FormControl>
-          <Input
-            type='tel'
-            disabled={tokenSelect === "" ? true : false } 
-            placeholder='Amount - Min. 1'
-            value={burnAmountUser}
-            autoComplete='off'
-            onChange={handleSetBurnAmountUser}>
-          </Input>
-        </FormControl>
-      </HStack>
-      { burnToken && burnAmountUser >= minBurnAmount ?  
-      <ContractCallButton 
-        currentStxAddress={currentStxAddress}
-        token={burnToken} 
-        burnAmountUser={burnAmountUser}
-        handleResetInputFunc={ handleResetInputs }
-      /> : '' }
-    </VStack>
+      </VStack>
+    </HStack>
+  </VStack>
   )
 }

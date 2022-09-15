@@ -11,7 +11,7 @@ export const TestTokenMintButton = (props) => {
       contractAddress: props.token.contractAddress,
       contractName: props.token.contractName,
       functionName: 'mint',
-      functionArgs: props.token.functionArguements,
+      functionArgs: props.token.functionArguments,
       postConditions: props.token.postConditions,
     });
 

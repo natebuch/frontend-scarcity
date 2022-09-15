@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth, useUser, useNetwork} from "@micro-stacks/react";
-import { fetchAccountBalances, fetchAccountTransactionsWithTransfers, fetchReadOnlyFunction } from 'micro-stacks/api';
+import { fetchReadOnlyFunction } from 'micro-stacks/api';
 import {
   standardPrincipalCV
 } from 'micro-stacks/clarity';
@@ -16,12 +16,17 @@ import {
 import { UserInputs} from './Components/UserInputs';
 import { TestInputs} from './Components/TestInputs';
 
+//DevNet
 const scarcityToken = {
-  address: 'SP1360BMRNRYWMHP9MWVD2B0VYET8G6MC8N0DH1MQ',
-  contractName: 'scarcity',
+  address: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
+  contractName: 'scarcity-token',
 };
 
-//SP1360BMRNRYWMHP9MWVD2B0VYET8G6MC8N0DH1MQ.scarcity
+//MainNet
+// const scarcityToken = {
+//   address: 'SP1360BMRNRYWMHP9MWVD2B0VYET8G6MC8N0DH1MQ',
+//   contractName: 'scarcity-token',
+// };
 
 const token = {
   tokenAddress: 'address',
@@ -36,6 +41,9 @@ function App() {
   const {currentStxAddress, ...rest} = useUser();
   const { network } = useNetwork();
   const [ userTokens, setUserTokens ] = useState([]);
+  const [ userInfo, setUserInfo ] = useState([]);
+  const [ dataLoading, setDataLoading ] = useState(true);
+  const [userNft, setUserNft] = useState()
 
   async function fetchWhitelistedAssets() { 
     const whitelistedAssets = await fetchReadOnlyFunction({
@@ -46,7 +54,6 @@ function App() {
       functionName: 'get-whitelist',
       sender: currentStxAddress,
     });
-    console.log('wl', whitelistedAssets)
     return whitelistedAssets
   };  
 
@@ -112,21 +119,46 @@ function App() {
     setUserTokens(userTokens => [...userTokens, obj]);
   };
 
+  async function fetchUserInfo() { 
+    const userInfo = await fetchReadOnlyFunction({
+      network: network,
+      contractAddress: scarcityToken.address,
+      contractName: scarcityToken.contractName,
+      functionArgs: [],
+      functionName: 'get-user-info',
+      sender: currentStxAddress,
+    });
+    return userInfo
+  };
+
+  async function fetchUserAssets() {
+    const url = 'http://localhost:3999/extended/v1/tokens/nft/holdings?principal=ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM&asset_identifiers=ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.scarcity-token::scarcity-token'
+    const data = await fetch(url)
+    const response = await data.json()
+    if (response.results.length > 0) {
+      return response.results[0].value.repr
+    }
+  }
+  
+  // See if there is consistent way to get data to order
   useEffect(() => {
     if (isSignedIn && currentStxAddress) {
       async function buildTokenData() {
         const assetList = await fetchWhitelistedAssets()
+        const userInfo = await fetchUserInfo()
+        const userNft = await fetchUserAssets()
           assetList.map(asset => {
-            buildTokenObj(asset)
+           return buildTokenObj(asset)
           })
+        setUserInfo(userInfo)
+        setUserNft(userNft) 
+        setDataLoading(false)
       }
-      buildTokenData()      
+      buildTokenData()
     } else {
       setUserTokens([])
     }
-  },[currentStxAddress,isSignedIn])
-
-  console.log(userTokens)
+  },[currentStxAddress, isSignedIn])
 
   return (
   <Box>
@@ -143,12 +175,27 @@ function App() {
     </Box>
     <Box>
       <VStack m='40px'>
-        <Heading size='3xl'>🔥 SCARCITY PROJECT 🔥</Heading>
-        { isSignedIn && currentStxAddress ?
-          <UserInputs
+        <Heading size='3xl'>🔥 SCARCITY PROJECT 🔥</Heading>      
+        { userTokens && !dataLoading? <UserInputs
             currentStxAddress={currentStxAddress}
             userTokens={userTokens}
-          /> : "" }
+            userInfo={userInfo}
+            userNft={userNft}
+          /> : 
+          <div><Spinner/></div>
+        }
+        <pre>
+          Burn whitelisted fungible tokens to mint a single Scarcity NFT.
+        </pre>
+        <pre>           
+          A wallet will only possess a single Scarcity NFT that tracks the amount burned.
+        </pre>
+        <pre> 
+          If a wallet performs multiple burn events, the existing NFT will be burned and new NFT will be minted.
+        </pre>
+        <pre> 
+          Each time a new Scarcity NFT is minted, the total amount burned by that wallet will be tracked.
+        </pre>
       </VStack>
     </Box>
     <Box position='fixed' bottom='0' p='3'>

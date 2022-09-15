@@ -25,7 +25,7 @@ export const TestInputs = (props) => {
     contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
     contractName: 'mint-test-token-one',
     functionName: 'mint',
-    functionArguements: [uintCV(1000), standardPrincipalCV(props.currentStxAddress)],
+    functionArguments: [uintCV(1000000000), standardPrincipalCV(props.currentStxAddress)],
     postConditions: [],
     variantType: "warning",
     buttonName: "Mint Test Token One"
@@ -36,7 +36,7 @@ export const TestInputs = (props) => {
     contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
     contractName: 'mint-test-token-two',
     functionName: 'mint',
-    functionArguements: [uintCV(1000), standardPrincipalCV(props.currentStxAddress)],
+    functionArguments: [uintCV(1000000000), standardPrincipalCV(props.currentStxAddress)],
     postConditions: [],
     variantType: "danger",
     buttonName: "Mint Test Token Two"
