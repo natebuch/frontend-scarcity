@@ -19,13 +19,14 @@ import {
 } from 'micro-stacks/clarity';
 
 export const TestInputs = (props) => {
+  const { currentStxAddress, network } = props
   const { isOpen, onOpen, onClose } = useDisclosure();
   const testTokenOne = {
     fullAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.mint-test-token-one',
     contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
     contractName: 'mint-test-token-one',
     functionName: 'mint',
-    functionArguments: [uintCV(1000000000), standardPrincipalCV(props.currentStxAddress)],
+    functionArguments: [uintCV(1000000000), standardPrincipalCV(currentStxAddress)],
     postConditions: [],
     variantType: "warning",
     buttonName: "Mint Test Token One"
@@ -36,7 +37,7 @@ export const TestInputs = (props) => {
     contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
     contractName: 'mint-test-token-two',
     functionName: 'mint',
-    functionArguments: [uintCV(1000000000), standardPrincipalCV(props.currentStxAddress)],
+    functionArguments: [uintCV(1000000000), standardPrincipalCV(currentStxAddress)],
     postConditions: [],
     variantType: "danger",
     buttonName: "Mint Test Token Two"
@@ -53,9 +54,9 @@ export const TestInputs = (props) => {
                 <Text>Mint tokens for testing.</Text>
                 <VStack p='3'>
                   <TestTokenMintButton token={testTokenOne} />  
-                  <TestTokenWhiteListButton token={testTokenOne}/>  
+                  <TestTokenWhiteListButton token={testTokenOne} network={network}/>  
                   <TestTokenMintButton token={testTokenTwo} /> 
-                  <TestTokenWhiteListButton token={testTokenTwo}/>
+                  <TestTokenWhiteListButton token={testTokenTwo} network={network}/>
                 </VStack>
               </ModalBody>
               <ModalFooter>

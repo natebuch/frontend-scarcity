@@ -14,17 +14,14 @@ import {
 } from 'micro-stacks/clarity';
 
 export const ContractCallButton = (props) => {
-  const { token, burnAmountUser, handleResetInputFunc, disabled, userInfo, userNft, currentStxAddress} = props;
-  const nftIdFromUser = Number(userNft.slice(1)) 
+  const { token, burnAmountUser, handleResetInputFunc, disabled, userInfo, currentStxAddress} = props;
   // gets NFT id from Stacks API based on user and scarcity contract
-
-
   const functionArgs = () => {
     if (userInfo) {
       return [
         uintCV(burnAmountUser*(Math.pow(10,token.decimal))),
         token.functionArguments.standard,
-        someCV(uintCV(nftIdFromUser)),
+        someCV(uintCV(userInfo["current-nft-id"])),
         token.functionArguments.contract,
       ]; 
     } else {
@@ -46,12 +43,12 @@ export const ContractCallButton = (props) => {
           burnAmountUser*(Math.pow(10,token.decimal)),
           token.postConditions.assetInfoFT,
         ),
-        makeStandardNonFungiblePostCondition(
-          token.postConditions.address,
-          token.postConditions.codeNFT,
-          token.postConditions.assetInfoNFT,
-          uintCV(nftIdFromUser),
-        ),
+          makeStandardNonFungiblePostCondition(
+            token.postConditions.address,
+            token.postConditions.codeNFT,
+            token.postConditions.assetInfoNFT,
+            uintCV(Number(userInfo["current-nft-id"])),
+          ),
       ]
     } else {
       return [
@@ -82,6 +79,7 @@ export const ContractCallButton = (props) => {
     },
   });
 
+  console.log(functionArgs,postConditions)
   return (
     <Button onClick={ handleContractCall } isDisabled={ disabled }>
       {token ? token.buttonName : 'Burn'}

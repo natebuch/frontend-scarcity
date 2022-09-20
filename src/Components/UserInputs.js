@@ -9,14 +9,12 @@ import {
   FormControl,
   UnorderedList,
   ListItem,
+  Spinner,
 } from '@chakra-ui/react';
 import {
   standardPrincipalCV,
   contractPrincipalCV,
 } from 'micro-stacks/clarity';
-import {
-  fetchTransaction  
-} from 'micro-stacks/api';
 import {
   FungibleConditionCode,
   createAssetInfo,
@@ -24,10 +22,8 @@ import {
 } from 'micro-stacks/transactions';
 import { ContractCallButton } from "./ContractCallButton"
 
-const minBurnAmount = 1
-
 export const UserInputs = (props) => {
-  const { currentStxAddress, userTokens, userInfo, userNft } = props
+  const { scarcityToken, currentStxAddress, userTokens, userInfo, userNft, minBurnAmount, handleRecentBurnFunc } = props
   const [tokenSelect, setTokenSelect] = useState("")
   const [burnAmountUser, setBurnAmountUser] = useState("");
   const [burnToken, setBurnToken ] = useState();
@@ -48,8 +44,8 @@ export const UserInputs = (props) => {
       name: token.tokenName,
       decimal: token.decimal,
       balance: token.tokenBalance,
-      contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-      contractName: 'scarcity-token',
+      contractAddress: scarcityToken.address,
+      contractName: scarcityToken.contractName,
       functionName: 'mint-scarcity',
       functionArguments: { 
           standard: standardPrincipalCV(currentStxAddress),
@@ -60,7 +56,7 @@ export const UserInputs = (props) => {
         codeFT: FungibleConditionCode.GreaterEqual, 
         assetInfoFT: createAssetInfo(token.tokenAddress.split('.')[0],token.tokenAddress.split('.')[1],token.tokenName),
         codeNFT: NonFungibleConditionCode.DoesNotOwn,
-        assetInfoNFT: createAssetInfo('ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM','scarcity-token','scarcity-token')
+        assetInfoNFT: createAssetInfo(scarcityToken.address,scarcityToken.name,scarcityToken.name)
       },
       buttonName: `🔥 Burn 🔥`
     })
@@ -68,46 +64,37 @@ export const UserInputs = (props) => {
 
   const handleResetInputs = () => {
     setBurnAmountUser("")
+    setTxStatus('checking')
+    handleRecentBurnFunc()
   }
 
-  useEffect(() => {
-    const recentTxId = window.localStorage.getItem(currentStxAddress);
-    async function checkRecentTxId() {
-      const data = await fetchTransaction({
-        txid: recentTxId, 
-        url: 'http://localhost:3999',
-      })
-      setTxStatus(data.tx_status)
-    };
-    if (recentTxId) {
-      checkRecentTxId()
-      } else {
-        window.localStorage.removeItem(currentStxAddress)
-        setTxStatus('pending')
-    }
-  },[])
-
+  console.log({props})
   return (
     <VStack>
       { userInfo ? 
       <HStack justify='space-between'>
-        <Text>Burnt Amount: {userInfo["burnt-amount"] ? Number(userInfo["burnt-amount"])/(Math.pow(10, userTokens[0] && userTokens[0].decimal)) : ""}</Text>
-        <Text>Scarcity NFT ID: {userInfo["current-nft-id"] ? Number(userInfo["current-nft-id"]) : ''}</Text>
+        <Text>Burnt Amount: {userInfo["burnt-amount"] ? Number(userInfo["burnt-amount"])/(Math.pow(10, userTokens[0] && userTokens[0].decimal)) : ''}</Text>
+        <Text>Scarcity NFT ID: {userInfo["current-nft-id"] ? Number(userInfo["current-nft-id"]) : 'no token'}</Text>
       </HStack> : '' }
     <HStack borderWidth='2px' p='3'>
-      <VStack >
-        <Text fontSize='3xl'>Balances</Text>
-        { userTokens.length > 1 ?
-          <UnorderedList styleType='none'>
-            { userTokens.map(token => {
-              return (
-                <ListItem key={token.tokenName}>
-                  {token.tokenName}: {Number(token.tokenBalance)/(Math.pow(10,token.decimal))}
-                </ListItem>
-              )})
-            }
-          </UnorderedList> :
-          <Text fontSize='sm'>No burnable assets</Text>
+      <VStack>
+        { userTokens.length > 0 ?
+          <>
+            <Text fontSize='3xl'>Balances</Text>
+            <UnorderedList styleType='none'>
+              { userTokens.map(token => {
+                return (
+                  <ListItem key={token.tokenName}>
+                    {token.tokenName}: {Number(token.tokenBalance)/(Math.pow(10,token.decimal))}
+                  </ListItem>
+                )})
+              }
+            </UnorderedList>
+          </> :
+          <>
+            <Text fontSize='3xl'>Balances</Text>
+            <Text fontSize='sm'>No burnable assets</Text>
+          </>
         }
         </VStack>
       <VStack p='3'>

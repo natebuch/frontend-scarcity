@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth, useUser, useNetwork} from "@micro-stacks/react";
-import { fetchReadOnlyFunction } from 'micro-stacks/api';
+import { fetchReadOnlyFunction, fetchTransaction } from 'micro-stacks/api';
 import {
   standardPrincipalCV
 } from 'micro-stacks/clarity';
@@ -15,17 +15,14 @@ import {
 } from '@chakra-ui/react';
 import { UserInputs} from './Components/UserInputs';
 import { TestInputs} from './Components/TestInputs';
+import { useEnvStore } from './index';
 
 //DevNet
-const scarcityToken = {
-  address: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-  contractName: 'scarcity-token',
-};
-
-//MainNet
 // const scarcityToken = {
-//   address: 'SP1360BMRNRYWMHP9MWVD2B0VYET8G6MC8N0DH1MQ',
+//   address: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
 //   contractName: 'scarcity-token',
+//   name: 'scarcity-token',
+//   apiUrl: 'http://localhost:3999' 
 // };
 
 const token = {
@@ -40,10 +37,18 @@ function App() {
   const {isSignedIn, handleSignIn, handleSignOut, isLoading} = useAuth();
   const {currentStxAddress, ...rest} = useUser();
   const { network } = useNetwork();
+  const scarcityToken = useEnvStore((state) => state.env);
   const [ userTokens, setUserTokens ] = useState([]);
   const [ userInfo, setUserInfo ] = useState([]);
   const [ dataLoading, setDataLoading ] = useState(true);
-  const [userNft, setUserNft] = useState()
+  const [userNft, setUserNft] = useState();
+  const [minBurnAmount, setMinBurnAmount] = useState();
+  const [recentBurn, setRecentBurn] = useState(false)
+  const [txStatus, setTxStatus] = useState()
+
+  const handleRecentBurn = () => {
+    setRecentBurn(true)
+  }
 
   async function fetchWhitelistedAssets() { 
     const whitelistedAssets = await fetchReadOnlyFunction({
@@ -68,6 +73,19 @@ function App() {
     });
     return Number(tokenBalance)
   }; 
+
+  async function fetchMinBurnAmount() {
+    const minBurnAmount = await fetchReadOnlyFunction({
+      network: network,
+      contractAddress: scarcityToken.address,
+      contractName: scarcityToken.contractName,
+      functionArgs: [],
+      functionName: 'get-min-burn-amount',
+      sender: currentStxAddress,
+
+    });
+    return Number(minBurnAmount)
+  }
   
   async function fetchDecimal(contract) { 
     const decimal = await fetchReadOnlyFunction({
@@ -124,7 +142,7 @@ function App() {
       network: network,
       contractAddress: scarcityToken.address,
       contractName: scarcityToken.contractName,
-      functionArgs: [],
+      functionArgs: [standardPrincipalCV(currentStxAddress)],
       functionName: 'get-user-info',
       sender: currentStxAddress,
     });
@@ -132,34 +150,55 @@ function App() {
   };
 
   async function fetchUserAssets() {
-    const url = 'http://localhost:3999/extended/v1/tokens/nft/holdings?principal=ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM&asset_identifiers=ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.scarcity-token::scarcity-token'
+    const url = `${scarcityToken.apiUrl}/extended/v1/tokens/nft/holdings?principal=${currentStxAddress}&asset_identifiers=${scarcityToken.address}.${scarcityToken.contractName}::${scarcityToken.name}`
     const data = await fetch(url)
     const response = await data.json()
+    console.log('fetchUserAssets',response)
     if (response.results.length > 0) {
       return response.results[0].value.repr
-    }
+    } 
   }
   
   // See if there is consistent way to get data to order
   useEffect(() => {
+    const recentTxId = window.localStorage.getItem(currentStxAddress);
+    async function buildTokenData() {
+      const assetList = await fetchWhitelistedAssets()
+      const userInfo = await fetchUserInfo()
+      const userNft = await fetchUserAssets()
+      const minBurnAmount = await fetchMinBurnAmount()
+        assetList.map(asset => {
+         return buildTokenObj(asset)
+        })
+      setUserInfo(userInfo)
+      setUserNft(userNft) 
+      setMinBurnAmount(minBurnAmount)
+      setDataLoading(false)
+    }
+
+    async function checkRecentTxId() {
+      const data = await fetchTransaction({
+        txid: recentTxId, 
+        url: scarcityToken.apiUrl,
+      })
+      return data.tx_status
+    };
+
     if (isSignedIn && currentStxAddress) {
-      async function buildTokenData() {
-        const assetList = await fetchWhitelistedAssets()
-        const userInfo = await fetchUserInfo()
-        const userNft = await fetchUserAssets()
-          assetList.map(asset => {
-           return buildTokenObj(asset)
-          })
-        setUserInfo(userInfo)
-        setUserNft(userNft) 
-        setDataLoading(false)
-      }
+      if (recentTxId) {
+        if (checkRecentTxId() === 'pending') {
+          setTxStatus('pending')
+        } else {
+          window.localStorage.removeItem(currentStxAddress)  
+          setTxStatus('complete')
+        }
+      } 
       buildTokenData()
     } else {
       setUserTokens([])
     }
   },[currentStxAddress, isSignedIn])
-
+  
   return (
   <Box>
     <Box p='3'>
@@ -176,11 +215,14 @@ function App() {
     <Box>
       <VStack m='40px'>
         <Heading size='3xl'>🔥 SCARCITY PROJECT 🔥</Heading>      
-        { userTokens && !dataLoading? <UserInputs
+        { userTokens && !dataLoading ? <UserInputs
+            scarcityToken={scarcityToken}
             currentStxAddress={currentStxAddress}
             userTokens={userTokens}
             userInfo={userInfo}
             userNft={userNft}
+            minBurnAmount={minBurnAmount}
+            handleRecentBurnFunc={handleRecentBurn}
           /> : 
           <div><Spinner/></div>
         }
@@ -203,7 +245,9 @@ function App() {
         { isSignedIn && currentStxAddress && network.bnsLookupUrl === "http://localhost:3999" ? 
           <HStack>
             <Text>Dev: </Text>
-            { currentStxAddress && <TestInputs currentStxAddress={currentStxAddress}/> }
+            { currentStxAddress && 
+            <TestInputs currentStxAddress={currentStxAddress}
+            /> }
           </HStack> : ''
         }
       </HStack>

@@ -7,13 +7,15 @@ import {
 
 
 export const TestTokenMintButton = (props) => {
-    const { handleContractCall } = useContractCall ({
-      contractAddress: props.token.contractAddress,
-      contractName: props.token.contractName,
-      functionName: 'mint',
-      functionArgs: props.token.functionArguments,
-      postConditions: props.token.postConditions,
-    });
+  const { token } = props
+  
+  const { handleContractCall } = useContractCall ({
+    contractAddress: token.contractAddress,
+    contractName: token.contractName,
+    functionName: 'mint',
+    functionArgs: token.functionArguments,
+    postConditions: token.postConditions,
+  });
 
 return (
   <Button onClick={ handleContractCall }>

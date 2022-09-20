@@ -8,17 +8,20 @@ import {
 } from '@chakra-ui/react';
 
 export const TestTokenWhiteListButton = (props) => {
-    const { handleContractCall } = useContractCall ({
-      contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
-      contractName: 'scarcity-token',
-      functionName: 'set-whitelisted',
-      functionArgs: [contractPrincipalCV(props.token.fullAddress),trueCV(true)],
-      postConditions: props.token.postConditions,
-    });
+  const { token } = props
 
+  const { handleContractCall } = useContractCall ({
+    contractAddress: 'ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM',
+    contractName: 'scarcity-token',
+    functionName: 'set-whitelisted',
+    functionArgs: [contractPrincipalCV(token.fullAddress),trueCV(true)],
+    postConditions: token.postConditions,
+  });
+
+console.log(props)
 return (
   <Button onClick={ handleContractCall }>
-    {`whitelist ${props.token.contractName}`}
+    {`whitelist ${token.contractName}`}
   </Button>
 )
 
