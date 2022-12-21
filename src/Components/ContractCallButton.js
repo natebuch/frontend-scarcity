@@ -1,6 +1,8 @@
-import { useState, useEffect} from "react"
+import { useState } from "react"
 import { useContractCall } from "@micro-stacks/react";
 import { 
+  Stack,
+  Text,
   Button,
 } from '@chakra-ui/react';
 import {
@@ -12,23 +14,33 @@ import {
   noneCV,
   someCV,
 } from 'micro-stacks/clarity';
+import { useEnvStore } from '../index';
 
 export const ContractCallButton = (props) => {
-  const { token, burnAmountUser, handleResetInputFunc, disabled, userInfo, currentStxAddress} = props;
+  const { token, burnAmountUser, handleResetInputFunc, disabled, userInfo, handlePendingTxStatus} = props;
+  const scarcityToken = useEnvStore((state) => state.env);
   // gets NFT id from Stacks API based on user and scarcity contract
+
+  const defineContractFunction = () => {
+    if (userInfo) {
+      return 'mint-burn-scarcity'
+    } else {
+      return 'initial-mint-scarcity'
+    }
+  }
+  
   const functionArgs = () => {
     if (userInfo) {
       return [
         uintCV(burnAmountUser*(Math.pow(10,token.decimal))),
+        uintCV(userInfo["nft-id"]),
         token.functionArguments.standard,
-        someCV(uintCV(userInfo["current-nft-id"])),
         token.functionArguments.contract,
       ]; 
     } else {
       return [
         uintCV(burnAmountUser*(Math.pow(10,token.decimal))),
         token.functionArguments.standard,
-        noneCV(),
         token.functionArguments.contract,
       ]
     }
@@ -47,7 +59,7 @@ export const ContractCallButton = (props) => {
             token.postConditions.address,
             token.postConditions.codeNFT,
             token.postConditions.assetInfoNFT,
-            uintCV(Number(userInfo["current-nft-id"])),
+            uintCV(Number(userInfo["nft-id"])),
           ),
       ]
     } else {
@@ -62,27 +74,23 @@ export const ContractCallButton = (props) => {
     }
   };
 
-  const storeTxAddress = (data) => {
-    window.localStorage.setItem(currentStxAddress,data.txId);
-    handleResetInputFunc();
-  }
-
   const { handleContractCall } = useContractCall ({
     contractAddress: token.contractAddress,
     contractName: token.contractName,
-    functionName: token.functionName,
+    functionName: defineContractFunction(),
     functionArgs: functionArgs(),
     postConditions: postConditions(),
     onFinish: async data => {
-      console.log('finished contract call!', data);
-      storeTxAddress(data)
-    },
+      console.log('finished contract call!', data.txId);
+      window.localStorage.setItem('scarcityTx', data.txId); 
+      handlePendingTxStatus();
+      handleResetInputFunc();
+    }
   });
 
-  console.log(functionArgs,postConditions)
   return (
     <Button onClick={ handleContractCall } isDisabled={ disabled }>
       {token ? token.buttonName : 'Burn'}
     </Button>
-    )
+  ) 
 }
