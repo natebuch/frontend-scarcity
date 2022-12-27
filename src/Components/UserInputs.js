@@ -27,7 +27,6 @@ export const UserInputs = (props) => {
     scarcityToken,
     currentStxAddress,
     userTokens,
-    userTokens2,
     userInfo,
     userAssets,
     minBurnAmount,
@@ -46,7 +45,7 @@ export const UserInputs = (props) => {
   };
 
   const handlePendingTxStatus = (txId) => {
-    setCurrentTx(true);
+    setCurrentTx(txId);
   };
 
   const handleSetBurnToken = (e) => {

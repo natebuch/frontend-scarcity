@@ -116,7 +116,6 @@ function App() {
               scarcityToken={scarcityToken}
               currentStxAddress={currentStxAddress}
               userTokens={sortBy(userTokens, ["tokenName"])}
-              userTokens2={userTokens}
               userInfo={userInfo}
               userAssets={userAssets}
               minBurnAmount={minBurnAmount}
