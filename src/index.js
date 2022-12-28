@@ -16,8 +16,8 @@ import reportWebVitals from "./reportWebVitals";
 //Styling
 import { ChakraProvider } from "@chakra-ui/react";
 
-const network = new StacksMocknet();
-// const network = new StacksMainnet()
+// const network = new StacksMocknet();
+const network = new StacksMainnet();
 
 // DevNet
 const scarcityTokenDev = {
