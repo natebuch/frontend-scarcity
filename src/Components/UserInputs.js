@@ -25,7 +25,7 @@ import { shortenAddress } from "@stacks-os/utils";
 export const UserInputs = (props) => {
   const {
     scarcityToken,
-    currentStxAddress,
+    stxAddress,
     userTokens,
     userInfo,
     userAssets,
@@ -61,11 +61,11 @@ export const UserInputs = (props) => {
       contractAddress: scarcityToken.address,
       contractName: scarcityToken.contractName,
       functionArguments: {
-        standard: standardPrincipalCV(currentStxAddress),
+        standard: standardPrincipalCV(stxAddress),
         contract: contractPrincipalCV(token.tokenAddress),
       },
       postConditions: {
-        address: currentStxAddress,
+        address: stxAddress,
         codeFT: FungibleConditionCode.GreaterEqual,
         assetInfoFT: createAssetInfo(
           token.tokenAddress.split(".")[0],
@@ -198,7 +198,7 @@ export const UserInputs = (props) => {
                 <ContractCallButton
                   userAssets={userAssets && userAssets}
                   userInfo={userInfo}
-                  currentStxAddress={currentStxAddress}
+                  stxAddress={stxAddress}
                   token={burnToken}
                   burnAmountUser={burnAmountUser}
                   handleResetInputFunc={handleResetInputs}

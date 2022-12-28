@@ -1,10 +1,10 @@
-import { useContractCall } from "@micro-stacks/react";
+import { useOpenContractCall } from "@micro-stacks/react";
 import { Button } from "@chakra-ui/react";
 
 export const TestTokenMintButton = (props) => {
   const { token } = props;
 
-  const { handleContractCall } = useContractCall({
+  const { handleContractCall } = useOpenContractCall({
     contractAddress: token.contractAddress,
     contractName: token.contractName,
     functionName: "mint",

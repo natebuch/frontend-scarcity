@@ -1,4 +1,4 @@
-import { useContractCall } from "@micro-stacks/react";
+import { useOpenContractCall } from "@micro-stacks/react";
 import { Button } from "@chakra-ui/react";
 import {
   makeStandardFungiblePostCondition,
@@ -15,6 +15,7 @@ export const ContractCallButton = (props) => {
     userInfo,
     handlePendingTxStatus,
   } = props;
+  const { openContractCall } = useOpenContractCall();
 
   const defineContractFunction = () => {
     if (userInfo) {
@@ -69,7 +70,7 @@ export const ContractCallButton = (props) => {
     }
   };
 
-  const { handleContractCall } = useContractCall({
+  const { handleContractCall } = openContractCall({
     contractAddress: token.contractAddress,
     contractName: token.contractName,
     functionName: defineContractFunction(),

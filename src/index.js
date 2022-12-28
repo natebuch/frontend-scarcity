@@ -3,7 +3,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 
 //Microstack
-import { MicroStacksProvider } from "@micro-stacks/react";
+import * as MicroStacks from "@micro-stacks/react";
 import { StacksMocknet, StacksMainnet } from "micro-stacks/network";
 
 //Manage Global State
@@ -15,13 +15,6 @@ import reportWebVitals from "./reportWebVitals";
 
 //Styling
 import { ChakraProvider } from "@chakra-ui/react";
-
-const authOptions = {
-  appDetails: {
-    name: "Scarcity",
-    icon: "/icon.png",
-  },
-};
 
 const network = new StacksMocknet();
 // const network = new StacksMainnet()
@@ -62,9 +55,13 @@ export const useEnvStore = defineStore();
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <ChakraProvider>
-    <MicroStacksProvider authOptions={authOptions} network={network}>
+    <MicroStacks.ClientProvider
+      appName="My sick app"
+      appIconUrl="APP_ICON.png"
+      network={network}
+    >
       <App />
-    </MicroStacksProvider>
+    </MicroStacks.ClientProvider>
   </ChakraProvider>
 );
 

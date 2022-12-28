@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth, useUser, useNetwork } from "@micro-stacks/react";
+import { useAuth, useAccount, useNetwork } from "@micro-stacks/react";
 import {
   fetchWhitelistedAssets,
   fetchUserAssets,
@@ -33,8 +33,8 @@ const token = {
 };
 
 function App() {
-  const { isSignedIn, handleSignIn, handleSignOut, isLoading } = useAuth();
-  const { currentStxAddress, ...rest } = useUser();
+  const { isSignedIn, openAuthRequest, signOut, isRequestPending } = useAuth();
+  const { stxAddress } = useAccount();
   const { network } = useNetwork();
   const scarcityToken = useEnvStore((state) => state.env);
   const [userTokens, setUserTokens] = useState([]);
@@ -44,10 +44,10 @@ function App() {
   const [minBurnAmount, setMinBurnAmount] = useState();
 
   async function buildTokenObj(asset) {
-    const name = await fetchTokenName(network, asset, currentStxAddress);
-    const symbol = await fetchTokenSymbol(network, asset, currentStxAddress);
-    const balance = await fetchTokenBalance(network, asset, currentStxAddress);
-    const decimal = await fetchDecimal(network, asset, currentStxAddress);
+    const name = await fetchTokenName(network, asset, stxAddress);
+    const symbol = await fetchTokenSymbol(network, asset, stxAddress);
+    const balance = await fetchTokenBalance(network, asset, stxAddress);
+    const decimal = await fetchDecimal(network, asset, stxAddress);
     const obj = Object.create(token);
     obj.tokenAddress = asset;
     obj.tokenName = name;
@@ -58,7 +58,7 @@ function App() {
   }
 
   const signOutUser = () => {
-    handleSignOut();
+    signOut();
     setUserTokens([]);
   };
 
@@ -67,18 +67,14 @@ function App() {
       const assetList = await fetchWhitelistedAssets(
         network,
         contract,
-        currentStxAddress
+        stxAddress
       );
-      const userInfo = await fetchUserInfo(
-        network,
-        contract,
-        currentStxAddress
-      );
-      const userAssets = await fetchUserAssets(contract, currentStxAddress);
+      const userInfo = await fetchUserInfo(network, contract, stxAddress);
+      const userAssets = await fetchUserAssets(contract, stxAddress);
       const minBurnAmount = await fetchMinBurnAmount(
         network,
         contract,
-        currentStxAddress
+        stxAddress
       );
       assetList.map((asset) => {
         return buildTokenObj(asset);
@@ -89,7 +85,7 @@ function App() {
       setDataLoading(false);
     }
     buildTokenData(scarcityToken);
-  }, [currentStxAddress, isSignedIn]);
+  }, [stxAddress, isSignedIn]);
 
   return (
     <Box>
@@ -97,10 +93,10 @@ function App() {
         <HStack justify="space-between" spacing="2" w="100">
           <Heading size="md"> SCARCITY </Heading>
           <HStack>
-            <Heading size="xs">{currentStxAddress}</Heading>
+            <Heading size="xs">{stxAddress}</Heading>
             <Button
-              onClick={isSignedIn ? signOutUser : handleSignIn}
-              isLoading={isLoading}
+              onClick={isSignedIn ? signOutUser : openAuthRequest}
+              isLoading={isRequestPending}
               loadingText="Connecting ..."
             >
               {isSignedIn ? "Sign out" : "Connect Stacks Wallet"}
@@ -111,16 +107,16 @@ function App() {
       <Box>
         <VStack m="40px">
           <Heading size="3xl">🔥 SCARCITY PROJECT 🔥</Heading>
-          {userTokens && !dataLoading && currentStxAddress ? (
+          {userTokens && !dataLoading && stxAddress ? (
             <UserInputs
               scarcityToken={scarcityToken}
-              currentStxAddress={currentStxAddress}
+              stxAddress={stxAddress}
               userTokens={sortBy(userTokens, ["tokenName"])}
               userInfo={userInfo}
               userAssets={userAssets}
               minBurnAmount={minBurnAmount}
             />
-          ) : currentStxAddress ? (
+          ) : stxAddress ? (
             <VStack p="10">
               <Spinner />
             </VStack>
@@ -149,13 +145,11 @@ function App() {
       <Box position="fixed" bottom="0" p="3">
         <HStack>
           {isSignedIn &&
-          currentStxAddress &&
+          stxAddress &&
           network.bnsLookupUrl === "http://localhost:3999" ? (
             <HStack>
               <Text>Dev: </Text>
-              {currentStxAddress && (
-                <TestInputs currentStxAddress={currentStxAddress} />
-              )}
+              {stxAddress && <TestInputs stxAddress={stxAddress} />}
             </HStack>
           ) : (
             ""
