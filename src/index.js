@@ -18,7 +18,7 @@ import { ChakraProvider } from "@chakra-ui/react";
 
 //Networks
 // const network = new StacksMocknet();
-const network = new StacksMainnet();
+const network = "mainnet";
 
 // DevNet
 const scarcityTokenDev = {
@@ -53,13 +53,12 @@ const defineStore = () => {
 
 export const useEnvStore = defineStore();
 
-console.log("Index", network);
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <ChakraProvider>
     <MicroStacks.ClientProvider
       appName="Scarcity"
-      appIconUrl="APP_ICON.png"
+      appIconUrl="🔥"
       network={network}
     >
       <App />
