@@ -55,15 +55,15 @@ export const useEnvStore = defineStore();
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <ChakraProvider>
-    <MicroStacks.ClientProvider
-      appName="Scarcity"
-      appIconUrl="🔥"
-      network={network}
-    >
+  <MicroStacks.ClientProvider
+    appName="Scarcity"
+    appIconUrl="🔥"
+    network={network}
+  >
+    <ChakraProvider>
       <App />
-    </MicroStacks.ClientProvider>
-  </ChakraProvider>
+    </ChakraProvider>
+  </MicroStacks.ClientProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function
