@@ -16,6 +16,7 @@ import reportWebVitals from "./reportWebVitals";
 //Styling
 import { ChakraProvider } from "@chakra-ui/react";
 
+//Networks
 // const network = new StacksMocknet();
 const network = new StacksMainnet();
 
@@ -35,8 +36,8 @@ const scarcityTokenMain = {
   apiUrl: "https://stacks-node-api.mainnet.stacks.co",
 };
 
+console.log(network);
 const defineStore = () => {
-  console.log(network.bnsLookupUrl);
   if (network.bnsLookupUrl === "http://localhost:3999") {
     const useStore = create(() => ({
       env: scarcityTokenDev,
@@ -52,11 +53,12 @@ const defineStore = () => {
 
 export const useEnvStore = defineStore();
 
+console.log("Index", network);
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <ChakraProvider>
     <MicroStacks.ClientProvider
-      appName="My sick app"
+      appName="Scarcity"
       appIconUrl="APP_ICON.png"
       network={network}
     >

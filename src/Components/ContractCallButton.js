@@ -15,6 +15,7 @@ export const ContractCallButton = (props) => {
     userInfo,
     handlePendingTxStatus,
   } = props;
+
   const { openContractCall } = useOpenContractCall();
 
   const defineContractFunction = () => {
@@ -70,19 +71,21 @@ export const ContractCallButton = (props) => {
     }
   };
 
-  const { handleContractCall } = openContractCall({
-    contractAddress: token.contractAddress,
-    contractName: token.contractName,
-    functionName: defineContractFunction(),
-    functionArgs: functionArgs(),
-    postConditions: postConditions(),
-    onFinish: async (data) => {
-      console.log("finished contract call!", data.txId);
-      window.localStorage.setItem("scarcityTx", data.txId);
-      handlePendingTxStatus(data.txId);
-      handleResetInputFunc();
-    },
-  });
+  const handleContractCall = async () => {
+    openContractCall({
+      contractAddress: token.contractAddress,
+      contractName: token.contractName,
+      functionName: defineContractFunction(),
+      functionArgs: functionArgs(),
+      postConditions: postConditions(),
+      onFinish: async (data) => {
+        console.log("finished contract call!", data.txId);
+        window.localStorage.setItem("scarcityTx", data.txId);
+        handlePendingTxStatus(data.txId);
+        handleResetInputFunc();
+      },
+    });
+  };
 
   return (
     <Button onClick={handleContractCall} isDisabled={disabled}>

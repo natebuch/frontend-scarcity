@@ -16,8 +16,9 @@ import { TestTokenWhiteListButton } from "./TestTokenWhiteListButton";
 import { standardPrincipalCV, uintCV } from "micro-stacks/clarity";
 
 export const TestInputs = (props) => {
-  const { stxAddress, network } = props;
+  const { stxAddress } = props;
   const { isOpen, onOpen, onClose } = useDisclosure();
+
   const testTokenOne = {
     fullAddress:
       "ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.mint-test-token-one",
@@ -56,15 +57,9 @@ export const TestInputs = (props) => {
             <Text>Mint tokens for testing.</Text>
             <VStack p="3">
               <TestTokenMintButton token={testTokenOne} />
-              <TestTokenWhiteListButton
-                token={testTokenOne}
-                network={network}
-              />
+              <TestTokenWhiteListButton token={testTokenOne} />
               <TestTokenMintButton token={testTokenTwo} />
-              <TestTokenWhiteListButton
-                token={testTokenTwo}
-                network={network}
-              />
+              <TestTokenWhiteListButton token={testTokenTwo} />
             </VStack>
           </ModalBody>
           <ModalFooter>

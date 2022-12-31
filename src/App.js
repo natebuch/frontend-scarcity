@@ -149,7 +149,9 @@ function App() {
           network.bnsLookupUrl === "http://localhost:3999" ? (
             <HStack>
               <Text>Dev: </Text>
-              {stxAddress && <TestInputs stxAddress={stxAddress} />}
+              {stxAddress && (
+                <TestInputs stxAddress={stxAddress} network={network} />
+              )}
             </HStack>
           ) : (
             ""
